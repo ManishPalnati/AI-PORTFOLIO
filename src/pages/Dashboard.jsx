@@ -1,4 +1,4 @@
-import Layout from "../components/layout/Layout";
+import Layout from "../Components/layout/Layout";
 import { useEffect, useState } from "react";
 import {
   LineChart,

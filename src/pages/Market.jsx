@@ -1,4 +1,4 @@
-import Layout from "../components/layout/Layout";
+import Layout from "../Components/layout/Layout";
 
 const Market = () => {
   const stocks = JSON.parse(localStorage.getItem("stocks")) || [];
