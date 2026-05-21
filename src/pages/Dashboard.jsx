@@ -39,10 +39,8 @@ useEffect(() => {
   fetch(`${import.meta.env.VITE_API_URL}/portfolio?user_id=${userId}`)
     .then((res) => res.json())
     .then((res) => {
-      // ✅ ALWAYS update stocks (dropdown fix)
       setStocks(res.allStocks || []);
 
-      // ❗ ONLY update data if no saved data exists
       if (!saved) {
         const formatted = {
           ...res,
@@ -90,7 +88,7 @@ useEffect(() => {
         });
 
         // AI COMMENTARY
-        // 🔥 ADVANCED AI (BUY / SELL / HOLD)
+        
 
 const enriched = updated.map((s) => {
   const profit = s.quantity * (s.current_price - s.buy_price);
@@ -102,7 +100,6 @@ const enriched = updated.map((s) => {
 });
 
 const totalValue = enriched.reduce((s, i) => s + i.value, 0);
-// 🔥 PORTFOLIO DROP
 let dropRisk = false;
 
 if (prevValue !== null) {
@@ -115,7 +112,6 @@ if (prevValue !== null) {
 
 setPrevValue(totalValue);
 
-// 🔥 ALLOCATION DRIFT
 const expectedWeight = 100 / enriched.length;
 
 const driftAlerts = enriched.filter((s) => {
@@ -126,7 +122,6 @@ const driftAlerts = enriched.filter((s) => {
 
 const totalProfit = enriched.reduce((s, i) => s + i.profit, 0);
 
-// 🎯 CLASSIFY EACH STOCK
 const suggestions = enriched.map((s) => {
   let action = "HOLD";
   let reason = "";
@@ -159,12 +154,10 @@ const suggestions = enriched.map((s) => {
   };
 });
 
-// 📊 PICK BEST SIGNALS
 const topBuy = suggestions.find((s) => s.action === "BUY");
 const topSell = suggestions.find((s) => s.action === "SELL");
 const topHold = suggestions.find((s) => s.action === "HOLD");
 
-// ⚠️ RISK BASED ON CONCENTRATION
 let risk = "Low";
 
 if (dropRisk) {
@@ -180,7 +173,7 @@ if (dropRisk) {
 }
 
 if (suggestions.length === 1) {
-  // 🔥 single stock case
+
   const s = suggestions[0];
 
   if (s.profitPercent < -5) risk = "High";
@@ -188,7 +181,6 @@ if (suggestions.length === 1) {
   else risk = "Low";
 
 } else {
-  // 🔥 multi-stock case (your original logic)
   const maxWeight = Math.max(
     ...suggestions.map((s) => Number(s.weight))
   );
@@ -207,7 +199,7 @@ const dropText = dropRisk
   ? "🚨 Portfolio dropped more than 3%"
   : "No major drop";
 
-// 🤖 FINAL AI OUTPUT
+// FINAL AI OUTPUT
 const aiText = `
 📊 Portfolio Summary:
 Total Value: ₹${totalValue.toFixed(2)}

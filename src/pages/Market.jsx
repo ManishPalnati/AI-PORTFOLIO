@@ -5,10 +5,7 @@ const Market = () => {
   const [stocks, setStocks] = useState([]);
 
   useEffect(() => {
-    // 🔥 get current user
     const userId = Number(localStorage.getItem("userId")) || 1;
-
-    // 🔥 read from dashboard cache
     const saved = localStorage.getItem(`portfolioData_${userId}`);
 
     if (saved) {
