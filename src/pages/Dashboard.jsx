@@ -14,10 +14,7 @@ import {
 } from "recharts";
 
 const Dashboard = () => {
-  const [data, setData] = useState(() => {
-  const saved = localStorage.getItem("portfolioData");
-  return saved ? JSON.parse(saved) : { holdings: [] };
-});
+  const [data, setData] = useState(null);
   const [userId, setUserId] = useState(() => {
   return Number(localStorage.getItem("userId")) || 1;
 });
@@ -32,15 +29,20 @@ const Dashboard = () => {
 
   // FETCH
 useEffect(() => {
-  const saved = localStorage.getItem("portfolioData");
+  const saved = localStorage.getItem(`portfolioData_${userId}`);
 
-  // 🔥 ALWAYS FETCH STOCK LIST
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    setData(parsed);
+  }
+
   fetch(`${import.meta.env.VITE_API_URL}/portfolio?user_id=${userId}`)
     .then((res) => res.json())
     .then((res) => {
+      // ✅ ALWAYS update stocks (dropdown fix)
       setStocks(res.allStocks || []);
 
-      // 🔥 ONLY SET DATA IF NO LOCAL DATA
+      // ❗ ONLY update data if no saved data exists
       if (!saved) {
         const formatted = {
           ...res,
@@ -48,20 +50,14 @@ useEffect(() => {
         };
 
         setData(formatted);
-        localStorage.setItem("portfolioData", JSON.stringify(formatted));
+
+        localStorage.setItem(
+          `portfolioData_${userId}`,
+          JSON.stringify(formatted)
+        );
       }
     });
-
-  // 🔥 LOAD LOCAL DATA ALWAYS
-  if (saved) {
-    setData(JSON.parse(saved));
-  }
 }, [userId]);
-    
-
-    useEffect(() => {
-      localStorage.setItem("userId", userId);
-    }, [userId]);
 
   // LIVE UPDATE
   useEffect(() => {
@@ -237,7 +233,10 @@ ${topHold ? `${topHold.stock} → ${topHold.reason}` : "Monitor all stocks"}
 `;
 
         const newState = { ...prev, holdings: updated, aiReport: aiText };
-        localStorage.setItem("portfolioData", JSON.stringify(newState));
+        localStorage.setItem(
+  `portfolioData_${userId}`,
+  JSON.stringify(newState)
+);
         return newState;
       });
     }, 3000);
@@ -283,7 +282,10 @@ setData((prev) => {
     ],
   };
 
-  localStorage.setItem("portfolioData", JSON.stringify(updated));
+  localStorage.setItem(
+  `portfolioData_${userId}`,
+  JSON.stringify(updated)
+);
 
   return updated;
 });
