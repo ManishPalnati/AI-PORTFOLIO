@@ -1,16 +1,116 @@
-# React + Vite
+Architecture
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The system follows a loosely coupled event-driven design, where services communicate via events.
 
-Currently, two official plugins are available:
+Tech Stack
+Frontend: React.js
+API Layer: Amazon API Gateway
+Backend: AWS Lambda (Python)
+Database: Amazon DynamoDB
+Event System: Amazon EventBridge / SNS / SQS
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## React Compiler
+Workflow
+User interacts with React frontend
+API Gateway triggers Lambda functions
+Data is stored/retrieved from DynamoDB
+Events are generated and processed asynchronously
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+Key Events
+PriceUpdated
+PortfolioRevalued
+RiskThresholdBreached
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Each event triggers independent services, ensuring scalability and flexibility.
+
+
+Prerequisites
+Node.js (v16+)
+Python (3.8+)
+AWS CLI configured (aws configure)
+AWS account with access to:
+Lambda
+API Gateway
+DynamoDB
+EventBridge / SNS / SQS
+
+
+AWS Setup
+1. Create DynamoDB Tables
+UserPortfolio
+StockPrices
+RiskMetrics
+2. Create Lambda Functions
+Price Update
+Portfolio Valuation
+Risk Calculation
+Insight Generation
+
+Upload code and configure triggers.
+
+3. Setup API Gateway
+Create REST API
+Connect endpoints to Lambda
+Enable CORS
+4. Configure Event System
+
+Option A: EventBridge
+
+Create event rules for routing events
+
+Option B: SNS + SQS
+
+Create topics and subscribe Lambda functions
+5. IAM Roles
+
+Ensure Lambda has permissions for:
+
+DynamoDB access
+Event publishing and consumption
+
+
+Frontend Setup
+cd frontend
+npm install
+npm start
+
+Update API endpoints in:
+
+src/config.js
+
+
+Backend Setup
+cd backend
+pip install -r requirements.txt
+Dataset
+Use provided CSV file in /data
+Or generate synthetic portfolio data
+Upload into DynamoDB
+Running the Project
+Deploy backend services on AWS
+Start frontend
+Trigger events by updating stock prices or portfolios
+
+The system will automatically process events and update results.
+
+Features
+Event-driven architecture
+Serverless backend (AWS Lambda)
+Real-time portfolio evaluation
+Risk detection system
+Rule-based insights
+Scalable and loosely coupled design
+
+
+Challenges
+IAM permission configuration
+Event flow design
+Managing asynchronous processing
+👨‍💻 Author
+
+Manish Kumar Palnati
+
+📄 License
+
+For academic and demonstration purposes only.
