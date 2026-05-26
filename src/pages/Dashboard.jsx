@@ -21,7 +21,7 @@ const Dashboard = () => {
   const [stocks, setStocks] = useState([]);
   const [priceHistory, setPriceHistory] = useState([]);
   const [prevValue, setPrevValue] = useState(null);
-
+  const [holdings, setHoldings] = useState([]);
   const [newStock, setNewStock] = useState({
     stock: "",
     quantity: "",
@@ -29,32 +29,33 @@ const Dashboard = () => {
 
   // FETCH
 useEffect(() => {
-  const saved = localStorage.getItem(`portfolioData_${userId}`);
-
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    setData(parsed);
-  }
-
-  fetch(`${import.meta.env.VITE_API_URL}/portfolio?user_id=${userId}`)
-    .then((res) => res.json())
-    .then((res) => {
-      setStocks(res.allStocks || []);
-
-      if (!saved) {
-        const formatted = {
+  const fetchData = () => {
+    fetch(`${import.meta.env.VITE_API_URL}/portfolio?user_id=${userId}`)
+      .then((res) => res.json())
+      .then((res) => {
+        setData({
           ...res,
           holdings: res.holdings || []
-        };
+        });
 
-        setData(formatted);
+        setStocks(res.allStocks || []);
 
         localStorage.setItem(
           `portfolioData_${userId}`,
-          JSON.stringify(formatted)
+          JSON.stringify(res)
         );
-      }
-    });
+      });
+  };
+
+  //  call immediately
+  fetchData();
+
+  // auto refresh every 5 sec
+  const interval = setInterval(fetchData, 5000);
+
+  // cleanup
+  return () => clearInterval(interval);
+
 }, [userId]);
 
   // LIVE UPDATE
@@ -255,67 +256,126 @@ ${topHold ? `${topHold.stock} → ${topHold.reason}` : "Monitor all stocks"}
     })) || [];
 
   // ADD
-  const addStock = () => {
-    if (!newStock.stock || !newStock.quantity) return;
+const addStock = () => {
+  console.log("CLICKED", newStock);
 
-    const price = Math.floor(Math.random() * 500) + 200;
+  if (!newStock.stock || !newStock.quantity) {
+    console.log("BLOCKED ❌");
+    return;
+  }
 
-setData((prev) => {
-  const updated = {
-    ...prev,
-    holdings: [
-      ...prev.holdings,
-      {
-        stock: newStock.stock,
-        quantity: Number(newStock.quantity),
-        buy_price: price,
-        current_price: price,
-      },
-    ],
-  };
+  console.log("SENDING POST ✅");
 
-  localStorage.setItem(
-  `portfolioData_${userId}`,
-  JSON.stringify(updated)
-);
+  const price = Math.floor(Math.random() * 500) + 200;
 
-  return updated;
-});
-
-    setNewStock({ stock: "", quantity: "" });
-  };
+  fetch(`${import.meta.env.VITE_API_URL}/portfolio`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      stock: newStock.stock,
+      quantity: Number(newStock.quantity),
+      buy_price: price,
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("DONE ✅", data);
+    });
+};
 
   // REMOVE
-  const removeStock = (i) => {
-    setData((prev) => {
-      const updated = [...prev.holdings];
-      updated.splice(i, 1);
-      return { ...prev, holdings: updated };
-    });
-  };
+const removeStock = (item) => {
+  console.log("DELETE CLICK:", item);
+
+  fetch(`${import.meta.env.VITE_API_URL}/portfolio`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      stock: item.stock,
+    }),
+  })
+    .then(res => res.json())
+    .then(data => console.log("DELETE RESPONSE:", data))
+    .catch(err => console.error("DELETE ERROR:", err));
+};;
 
   // QTY
-  const reduceQuantity = (i) => {
-    setData((prev) => {
-      const updated = [...prev.holdings];
-
-      if (updated[i].quantity === 1) {
-        updated.splice(i, 1);
-      } else {
-        updated[i].quantity -= 1;
-      }
-
-      return { ...prev, holdings: updated };
+const reduceQuantity = (item) => {
+  if (item.quantity === 1) {
+    // CALL DELETE
+    fetch(`${import.meta.env.VITE_API_URL}/portfolio`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        stock: item.stock,
+      }),
+    }).then(() => {
+      setHoldings((prev) =>
+        prev.filter((h) => h.stock !== item.stock)
+      );
     });
-  };
 
-  const increaseQuantity = (i) => {
-    setData((prev) => {
-      const updated = [...prev.holdings];
-      updated[i].quantity += 1;
-      return { ...prev, holdings: updated };
-    });
-  };
+    return;
+  }
+
+  // NORMAL DECREASE
+  const newQty = item.quantity - 1;
+
+  fetch(`${import.meta.env.VITE_API_URL}/portfolio`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      stock: item.stock,
+      quantity: newQty,
+    }),
+  }).then(() => {
+    setHoldings((prev) =>
+      prev.map((h) =>
+        h.stock === item.stock
+          ? { ...h, quantity: newQty }
+          : h
+      )
+    );
+  });
+};
+
+
+
+const increaseQuantity = (item) => {
+  const newQty = item.quantity + 1;
+
+  fetch(`${import.meta.env.VITE_API_URL}/portfolio`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      stock: item.stock,
+      quantity: newQty,
+    }),
+  }).then(() => {
+    setHoldings((prev) =>
+      prev.map((h) =>
+        h.stock === item.stock
+          ? { ...h, quantity: newQty }
+          : h
+      )
+    );
+  });
+};
 
   if (!data) return <div>Loading...</div>;
 
@@ -507,7 +567,7 @@ setData((prev) => {
               <td>
                 <div className="flex justify-center items-center gap-2 bg-slate-700 px-2 py-1 rounded-lg w-fit mx-auto">
                   <button
-                    onClick={() => reduceQuantity(i)}
+                    onClick={() => reduceQuantity(item)}
                     className="bg-red-500 hover:bg-red-600 px-2 rounded text-white font-bold"
                   >
                     −
@@ -518,7 +578,7 @@ setData((prev) => {
                   </span>
 
                   <button
-                    onClick={() => increaseQuantity(i)}
+                    onClick={() => increaseQuantity(item)}
                     className="bg-green-500 hover:bg-green-600 px-2 rounded text-white font-bold"
                   >
                     +
@@ -550,7 +610,7 @@ setData((prev) => {
               {/* REMOVE */}
               <td>
                 <button
-                  onClick={() => removeStock(i)}
+                  onClick={() => removeStock(item)}
                   className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-white shadow"
                 >
                   Remove
