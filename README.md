@@ -107,10 +107,7 @@ Challenges
 IAM permission configuration
 Event flow design
 Managing asynchronous processing
-👨‍💻 Author
 
-Manish Kumar Palnati
+Author
 
-📄 License
-
-For academic and demonstration purposes only.
+Palnati Manish Kumar
