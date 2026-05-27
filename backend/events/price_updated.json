@@ -1,0 +1,7 @@
+{
+  "eventType": "PriceUpdated",
+  "stockSymbol": "AAPL",
+  "newPrice": 185.75,
+  "timestamp": "2026-01-01T10:00:00Z",
+  "source": "price-service"
+}

@@ -1,0 +1,9 @@
+{
+  "eventType": "RiskThresholdBreached",
+  "userId": "user_101",
+  "riskScore": 0.78,
+  "threshold": 0.70,
+  "riskLevel": "HIGH",
+  "reason": "High exposure to single sector",
+  "timestamp": "2026-01-01T10:02:00Z"
+}
